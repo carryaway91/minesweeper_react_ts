@@ -5,8 +5,7 @@ const App: React.FC = () => {
   const [restart, setRestart] = useState<boolean>(false)
   
   return (
-    <div style={{ height: '100wh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-      <button onClick={() => setRestart(true)}>Restart</button>
+    <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
       <Grid reset={restart}></Grid>
     </div>
   );

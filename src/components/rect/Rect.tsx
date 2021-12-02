@@ -1,5 +1,8 @@
 import styled from 'styled-components'
 import React, { useState, useEffect } from 'react'
+import Flag from '../../img/flag.png'
+import Bomb from '../../img/bomb.png'
+
 interface IProps {
     clicked: (index: {row: Number, col: Number, index: Number}) => void,
     col: Number,
@@ -7,12 +10,15 @@ interface IProps {
     bombs?: Number[],
     showBombs: () => void,
     gameOver: boolean,
-    gameStarted: boolean
+    gameStarted: boolean,
+    clickedOnZero: (index:number) => void,
+    adjecentIndexes: Number[] | undefined,
+    useFlag: () => void
 }
 
 
-const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBombs, gameOver }) => {
-    const [rectContent, setRectContent] = useState<Number|String>(0)
+const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, clickedOnZero, showBombs, gameOver, adjecentIndexes }) => {
+    const [rectContent, setRectContent] = useState<number>(0)
     const [color, setColor] = useState('lightgray')
     const [borderLeftAndTop, setBorderLeftAndTop] = useState('2px solid white')
     const [borderRightAndBottom, setBorderRightAndBottom] = useState('2px solid gray')
@@ -20,10 +26,9 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
     const [mineFlagged, setMineFlagged] = useState<boolean>(false)
     const [pressed, setPressed] = useState<boolean>(false)
     const [isBomb, setIsBomb] = useState<boolean>(false)
-    const [initialClick, setInitialClick] = useState<boolean>(true)
     const [userClicked, setUserClicked] = useState<boolean>(false)
     const [rectIndex, setRectIndex] = useState<number>(0)
-
+    const [flagged, setFlagged] = useState<boolean>(false)
 
     //nastav farbu a vypocitaj index policka
     useEffect(() => {
@@ -38,12 +43,23 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
         setRectIndex(index)
     }, [])
 
+    useEffect(() => {
+        if(adjecentIndexes !== undefined) {
+            for(let i = 0; i <= adjecentIndexes.length; i++) {
+                if(rectIndex === adjecentIndexes[i]) {
+                    if(rectContent >=0 && rectContent !== 10) {
+                        setPressed(true)
+                    }
+                }
+            }
+        }
+    },[adjecentIndexes])
     
 
     useEffect(() => {
 
         if(isBomb) {
-            setRectContent('b')
+            setRectContent(10)
         }
 
     }, [isBomb])
@@ -53,7 +69,7 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
             bombs.filter(bomb => {
                 if(bomb === rectIndex) {
                     setIsBomb(true)
-                    setRectContent('b')
+                    setRectContent(10)
                 }
             })
         }
@@ -100,6 +116,7 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
         }
     },[gameOver])
 
+
     useEffect(() => {
         if(pressed && !isBomb) {
             setColor('#aaa')
@@ -112,7 +129,21 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
     // left click
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
         
-        
+
+
+        if(rectContent === 0 && !gameOver) {
+           for(let i = 0; i < 8; i++) {
+               clickedOnZero(rectIndex)
+           }
+        }
+
+
+
+
+
+
+
+
 
         if(!mineFlagged && !gameOver) {
 
@@ -137,9 +168,10 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
     // bombFlagged
     const handleRightClick = (e: React.MouseEvent<HTMLElement>) => {
         e.preventDefault()
+        setFlagged(true)
         if(color === 'lightgray' && !pressed && !gameOver) {
-            setColor('green')
             setMineFlagged(true)
+            
         } else if (color === 'green' && !pressed && !gameOver) {
             setColor('lightgray')
             setMineFlagged(false)
@@ -205,7 +237,9 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, bombs, gameStarted, showBom
                 fontColor={fontColor}
                 onContextMenu={(e : React.MouseEvent<HTMLElement>) => handleRightClick(e)} 
                 onClick={(e: React.MouseEvent<HTMLElement>) => handleClick(e)}>
-            {/* rectContent == 'b'|| rectContent === NaN || rectContent == 'f' || rectContent == 0 ? null : userClicked ? rectContent : null */ rectContent}
+            { rectContent == 10 || rectContent == 11 || rectContent == 0 || !pressed ? null : rectContent}
+            { flagged && <img src={Flag} /> }
+            { gameOver && isBomb && <img src={Bomb} />}
         </ Rectangle>
     )
 }
