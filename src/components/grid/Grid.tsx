@@ -68,39 +68,38 @@ const Grid: React.FC<IProps> = ({reset}) => {
             availableBombIndexes.push(i)
         }
 
-        // pole dostupnych indexov pre bomby
-        availableBombIndexes = availableBombIndexes.filter(b => { 
-            if(b > 1) {
-                return !(b <= +initialIndex - 3 && b >= +initialIndex + 3)
-            } else if(b === 1) {
-                return !(b <= +initialIndex + 2)
-            } else if( b === 225) {
-                return !(b >= +initialIndex - 2 )
-            }
-        })
-
-
-
         let arrayWithBombs = []
         let random 
         for(let i = 0; i <= bombs; i++) {
             random = Math.floor(Math.random() * availableBombIndexes.length) 
-            if(random !== initialIndex && arrayWithBombs.length < bombs) {
-                arrayWithBombs.push(random)
+            if(random !== initialIndex && random !== +initialIndex - 1 && random !== +initialIndex + 1 && arrayWithBombs.length < bombs) {
+                if(random !== +initialIndex + 15 && random !== +initialIndex - 15 ) {
+                    if(random !== +initialIndex + 14 && random !== +initialIndex - 16 ) {
+                        if(random !== +initialIndex + 16 && random !== +initialIndex - 14 ) {
+                            arrayWithBombs.push(random)
+                        }
+                    }
+                }
             }
         }
         //remove duplicates
         let arrayWithoutDuplicatedBombs = [...new Set(arrayWithBombs)]
 
         // urob to kym pole nebude mat 50 prvkov bez opakovania 
-        if(arrayWithBombs.length < 50) {
+        if(arrayWithBombs.length < bombs) {
             arrayWithBombs = []
 
-            while(arrayWithBombs.length < 50) {
+            while(arrayWithBombs.length < bombs) {
                 for(let i = 0; i <= bombs; i++) {
                     random = Math.floor(Math.random() * availableBombIndexes.length) 
-                    if(random !== initialIndex && arrayWithBombs.length < bombs) {
-                        arrayWithBombs.push(random)
+                    if(random !== initialIndex && random !== +initialIndex - 1 && random !== +initialIndex + 1 && arrayWithBombs.length < bombs) {
+                        if(random !== +initialIndex + 15 && random !== +initialIndex - 15 ) {
+                            if(random !== +initialIndex + 14 && random !== +initialIndex - 16 ) {
+                                if(random !== +initialIndex + 16 && random !== +initialIndex - 14 ) {
+                                    arrayWithBombs.push(random)
+                                }
+                            }
+                        }
                     }
                 }
                 arrayWithoutDuplicatedBombs = [...new Set(arrayWithBombs)]
