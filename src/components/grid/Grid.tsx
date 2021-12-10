@@ -3,11 +3,9 @@ import styled from 'styled-components'
 import Rect from '../rect/Rect'
 import Smiley from '../../img/smile.png'
 
-interface IProps {
-    reset: boolean
-}
 
-const Grid: React.FC<IProps> = ({reset}) => {
+
+const Grid: React.FC = () => {
     const [rows, setRows] = useState([...Array(15)]) 
     const [cols, setCols] = useState([...Array(15)])
     const [gameStarted, setGameStarted] = useState(false)
@@ -16,18 +14,28 @@ const Grid: React.FC<IProps> = ({reset}) => {
     const [placedBombs, setPlacedBombs] = useState<Number[]>()
     const [clickedRow, setClickedRow] = useState<Number>()
     const [clickedCol, setClickedCol] = useState<Number>()
-    const [arrayOfInitialRects, setArrayOfInitialRects] = useState<{row: number, col: number}[]>()
     const [gameOver, setGameOver] = useState<boolean>(false)
     const [adjectIndexes, setAdjecentIndexes] = useState<Number[]>()
     const [activeRestartStyle, setActiveRestartStyle] = useState<{bl: String, bt: String, br: String, bb: String, bg: String}>({bl: '2px solid #eee', bt: '2px solid #eee', br: '2px solid gray', bb: '2px solid gray', bg:'#bbb'})
+    const [reset, setReset] = useState<boolean>(false)
+    const [time, setTime] = useState<Number>(0)
+    const [timerIntervalId, setTimerIntervalId] = useState(0)
+    const [bobmsArePlaced, setBombsArePlaced] = useState<boolean>(false)
+    const [compeleteArrayToCheck, setCompleteArrayToCheck] = useState<Number[]>([])
+    const [flaggedBombs, setFlaggedBombs] = useState<Number[]>([])
 
-    // DOKONCI RESET HRY 
+
     useEffect(() => {
         if(reset) {
             setGameStarted(false)
             setPlacedBombs(undefined)
             setClickedRow(undefined)
             setClickedCol(undefined)
+            window.clearInterval(timerIntervalId)
+            setTime(0)
+            setFlagsLeft(bombs)
+            setBombsArePlaced(false)
+            setFlaggedBombs([])
         }
     },[reset])
     
@@ -36,6 +44,35 @@ const Grid: React.FC<IProps> = ({reset}) => {
             setFlagsLeft(bombs)
         }
     },[])
+    
+    useEffect(() => {
+        if(placedBombs && placedBombs.length > 0) {
+            setBombsArePlaced(true)
+        }
+    }, [placedBombs])
+
+
+    useEffect(() => {
+        if(time === 999) {
+            window.clearInterval(timerIntervalId)
+        }
+    }, [time])
+
+    useEffect(() => {
+       if(gameStarted && !gameOver) {
+           setTimerIntervalId(countInterval())
+        }
+       if(gameOver && timerIntervalId !== undefined) {
+            window.clearInterval(timerIntervalId)
+       }
+    }, [gameStarted, gameOver])
+
+    const countInterval = () => {
+       return window.setInterval(() => {
+            setTime(state => +state + 1)
+        }, 1000)
+    }
+
 
     const handleOnClicked = (index: {row: Number, col: Number, index: Number}) => {
         setClickedRow(index.row)
@@ -96,34 +133,45 @@ const Grid: React.FC<IProps> = ({reset}) => {
         }
         setPlacedBombs(arrayWithoutDuplicatedBombs)
     }
+    
 
-    const handleClickedOnZero = (initialIndex: number) => {
+    // po kliku na prazdne policko, zisti hodnotu susediacich policok
+    const handleClickedOnZero = (initialIndex: Number) => {
         let arrayOfAdjecentRects: Number[] = []
+        // lavy horny roh
+        if(+initialIndex === 1) {
+            arrayOfAdjecentRects = [2, 16, 17]
         
-        if(initialIndex === 1) {
-            arrayOfAdjecentRects = [1, 16, 17]
-        } else if(initialIndex > 1 && initialIndex < 225 && initialIndex % 15 !== 0 && initialIndex % 15 !== 1) {
-            arrayOfAdjecentRects = [initialIndex - 16, initialIndex - 15, initialIndex - 14, initialIndex - 1, initialIndex + 1, initialIndex + 14, initialIndex + 15, initialIndex + 16]
+        //ak nie je v rohu a ak nie je na zaciatku alebo konci riadku
+        } else if(+initialIndex > 1 && +initialIndex < 225 && +initialIndex % 15 !== 0 && +initialIndex % 15 !== 1) {
+            arrayOfAdjecentRects = [+initialIndex - 16, +initialIndex - 15, +initialIndex - 14, +initialIndex - 1, +initialIndex + 1, +initialIndex + 14, +initialIndex + 15, +initialIndex + 16]
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i > 0)
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i < 225)
-        } else if(initialIndex === 225) {
-            arrayOfAdjecentRects = [initialIndex - 16, initialIndex - 15, initialIndex - 1]
-        } else if(initialIndex % 15 === 0) {
-            arrayOfAdjecentRects = [initialIndex - 16, initialIndex - 15, initialIndex - 1, initialIndex + 14, initialIndex + 15 ]
+        // pravy dolny riadok
+        } else if(+initialIndex === 225) {
+            arrayOfAdjecentRects = [+initialIndex - 16, +initialIndex - 15, +initialIndex - 1]
+        // koniec riadku
+        } else if(+initialIndex % 15 === 0) {
+            arrayOfAdjecentRects = [+initialIndex - 16, +initialIndex - 15, +initialIndex - 1, +initialIndex + 14, +initialIndex + 15 ]
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i > 0)
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i < 225)
-        } else if(initialIndex % 15 === 1) {
-            arrayOfAdjecentRects = [initialIndex - 15, initialIndex - 14, initialIndex + 1, initialIndex + 15, initialIndex + 16]
+        //zaciatok riadku
+        } else if(+initialIndex % 15 === 1) {
+            arrayOfAdjecentRects = [+initialIndex - 15, +initialIndex - 14, +initialIndex + 1, +initialIndex + 15, +initialIndex + 16]
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i > 0)
             arrayOfAdjecentRects = arrayOfAdjecentRects.filter(i => i < 225)
         }
-
-        setAdjecentIndexes(arrayOfAdjecentRects)
+        let sorted = arrayOfAdjecentRects.sort((a, b) => +a - +b)
+        setAdjecentIndexes(sorted)
+        setCompleteArrayToCheck(state => [...new Set(state.concat(sorted))].sort((a, b) => +a - +b))
     }
+
 
 
     const makeGrid = () => {
         return (
+            <div style={{display: 'flex', borderTop: '2px solid #777', borderLeft: '2px solid #777', borderRight: '2px solid white', borderBottom: '2px solid white'}}>
+                {
             cols.map((c:Number, colIndex: Number) => {
                 return (
                     <div>
@@ -137,19 +185,77 @@ const Grid: React.FC<IProps> = ({reset}) => {
                                 showBombs={() => setGameOver(true)}
                                 gameOver={gameOver}
                                 gameStarted={gameStarted}
-                                clickedOnZero={(index: number) => handleClickedOnZero(index)}
+                                clickedOnZero={(index: Number) => handleClickedOnZero(index)}
+                                
+                                index={+rowIndex + 1 === 1 ? (15 / 15) * +colIndex + 1 : 15 * (+rowIndex + 1 - 1) + +colIndex + 1 }
+                                flagsLeft={flagsLeft}
                                 adjecentIndexes={adjectIndexes}
+                                checkAdjecent={adjectIndexes !== undefined ? adjectIndexes.some(i => i == (+rowIndex + 1 === 1 ? (15 / 15) * +colIndex + 1 : 15 * (+rowIndex + 1 - 1) + +colIndex + 1) ? true : false) : null}
+                                completeArray={compeleteArrayToCheck}
+                                sendCorrectFlaggedBomb={(index: Number) => handleAddCorretFlaggedBomb(index)}
+                                removeCorrectFlaggedBomb={(index: Number) => handleRemoveCorrectFlaggedBomb(index)}
                                 useFlag={() => setFlagsLeft(state => +state - 1) }
-                            />})
-                    }
+                                restart={reset}
+                                substractFlagCount={() => setFlagsLeft(state => +state - 1)}
+                                addFlagCount={() => setFlagsLeft(state => +state + 1)}
+                                bobmsArePlaced={bobmsArePlaced}
+                                />})
+                            }
                 </div>
             )
         })
+        }   
+        </div>
         )
     }
 
     const handleRestartGame = () => {
         setActiveRestartStyle({bl: '2px solid gray', bt: '2px solid gray', br: '1px solid gray', bb: '1px solid gray', bg: '#bbb'})
+        setReset(true)
+        setTimeout(() => {
+            setReset(false)
+        },100)
+        if(gameOver) {
+            setGameOver(false)
+        }
+        setAdjecentIndexes([])
+        setCompleteArrayToCheck([])
+        if(gameStarted) {
+            setGameStarted(false)
+        }
+    }   
+
+    const handleCheckIfUserWon = () => {
+        let placedBombsString;
+        let flaggedBombsString;
+        if(placedBombs !== undefined) {
+            placedBombsString = placedBombs.sort((a, b) => +a - +b).toString()
+        }
+
+        if(flaggedBombs !== undefined) {
+            flaggedBombsString = flaggedBombs.sort((a, b) => +a - +b).toString()
+        }
+        if(placedBombsString === flaggedBombsString) {
+            alert('You won!')
+            setGameOver(true)
+            window.clearInterval(timerIntervalId)
+
+        }
+    }
+
+
+    const handleAddCorretFlaggedBomb = (i: Number) => {
+        setFlaggedBombs(state => { return [...flaggedBombs, i]})
+    }
+    useEffect(() => {
+        if(flaggedBombs !== undefined && flaggedBombs.length > 0) {
+            handleCheckIfUserWon()
+        }
+    }, [flaggedBombs])
+
+    const handleRemoveCorrectFlaggedBomb = (i: Number) => {
+        const withoutFlag = flaggedBombs.filter(el => el !== i)
+        setFlaggedBombs(withoutFlag)
     }
 
     return (
@@ -159,8 +265,8 @@ const Grid: React.FC<IProps> = ({reset}) => {
                     <Counter>{ flagsLeft && flagsLeft }</Counter>
                     <Restart
                         onMouseDown={handleRestartGame} 
-                        onMouseUp={() => setActiveRestartStyle({bl: '2px solid #eee', bt: '2px solid #eee', br: '2px solid gray', bb: '2px solid gray', bg:'#bbb'})}
-                        onMouseLeave={() => setActiveRestartStyle({bl: '2px solid #eee', bt: '2px solid #eee', br: '2px solid gray', bb: '2px solid gray', bg:'#bbb'})}
+                        onMouseUp={() => setActiveRestartStyle({bl: '2px solid white', bt: '2px solid white', br: '2px solid gray', bb: '2px solid gray', bg:'#bbb'})}
+                        onMouseLeave={() => setActiveRestartStyle({bl: '2px solid white', bt: '2px solid white', br: '2px solid gray', bb: '2px solid gray', bg:'#bbb'})}
                         bl={activeRestartStyle.bl}
                         bt={activeRestartStyle.bt}
                         br={activeRestartStyle.br}
@@ -169,7 +275,7 @@ const Grid: React.FC<IProps> = ({reset}) => {
                         >
                         <img src={Smiley} width="17" />
                         </Restart>
-                <Counter>150</Counter>
+                <Counter>{time}</Counter>
                 </Inner>
 
             </Header>
@@ -209,8 +315,8 @@ const Grid: React.FC<IProps> = ({reset}) => {
         width: 96.9%;
         height: 2rem; 
         background: lightgray;
-        border-right: 2px solid #eee;
-        border-bottom: 2px solid #eee;
+        border-right: 2px solid white;
+        border-bottom: 2px solid white;
         border-left: 2px solid grey;
         border-top: 2px solid grey;
     `
