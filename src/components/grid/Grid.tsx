@@ -10,7 +10,7 @@ const Grid: React.FC = () => {
     const [cols, setCols] = useState([...Array(15)])
     const [gameStarted, setGameStarted] = useState(false)
     const [bombs, setBombs] = useState<Number>(50)
-    const [flagsLeft, setFlagsLeft] = useState<Number>(50)
+    const [flagsLeft, setFlagsLeft] = useState<Number>(0)
     const [placedBombs, setPlacedBombs] = useState<Number[]>()
     const [clickedRow, setClickedRow] = useState<Number>()
     const [clickedCol, setClickedCol] = useState<Number>()
@@ -33,7 +33,7 @@ const Grid: React.FC = () => {
             setClickedCol(undefined)
             window.clearInterval(timerIntervalId)
             setTime(0)
-            setFlagsLeft(bombs)
+            setFlagsLeft(0)
             setBombsArePlaced(false)
             setFlaggedBombs([])
         }
@@ -41,7 +41,7 @@ const Grid: React.FC = () => {
     
     useEffect(() => {
         if(bombs) {
-            setFlagsLeft(bombs)
+            setFlagsLeft(0)
         }
     },[])
     
@@ -115,7 +115,7 @@ const Grid: React.FC = () => {
         if(arrayWithBombs.length < bombs) {
             arrayWithBombs = []
 
-            while(arrayWithBombs.length < bombs) {
+            while(arrayWithBombs.length < 50) {
                 for(let i = 0; i <= bombs; i++) {
                     random = Math.floor(Math.random() * availableBombIndexes.length) 
                     if(random !== initialIndex && random !== +initialIndex - 1 && random !== +initialIndex + 1 && arrayWithBombs.length < bombs) {
@@ -131,6 +131,7 @@ const Grid: React.FC = () => {
                 arrayWithoutDuplicatedBombs = [...new Set(arrayWithBombs)]
             }
         }
+        setFlagsLeft(arrayWithoutDuplicatedBombs.length)
         setPlacedBombs(arrayWithoutDuplicatedBombs)
     }
     
