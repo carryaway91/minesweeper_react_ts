@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import Rect from '../rect/Rect'
 import Smiley from '../../img/smile.png'
-
-
+import Cool from '../../img/cool.png'
+import Dead from '../../img/dead.png'
 
 const Grid: React.FC = () => {
     const [rows, setRows] = useState([...Array(15)]) 
     const [cols, setCols] = useState([...Array(15)])
     const [gameStarted, setGameStarted] = useState(false)
-    const [bombs, setBombs] = useState<Number>(50)
+    const [bombs, setBombs] = useState<Number>(55)
     const [flagsLeft, setFlagsLeft] = useState<Number>(0)
     const [placedBombs, setPlacedBombs] = useState<Number[]>()
     const [clickedRow, setClickedRow] = useState<Number>()
@@ -23,7 +23,8 @@ const Grid: React.FC = () => {
     const [bobmsArePlaced, setBombsArePlaced] = useState<boolean>(false)
     const [compeleteArrayToCheck, setCompleteArrayToCheck] = useState<Number[]>([])
     const [flaggedBombs, setFlaggedBombs] = useState<Number[]>([])
-
+    const [gameWon, setGameWon] = useState<boolean>(false)
+    const [gameLost, setGameLost] = useState<boolean>(false)
 
     useEffect(() => {
         if(reset) {
@@ -36,6 +37,8 @@ const Grid: React.FC = () => {
             setFlagsLeft(0)
             setBombsArePlaced(false)
             setFlaggedBombs([])
+            setGameWon(false)
+            setGameLost(false)
         }
     },[reset])
     
@@ -167,6 +170,10 @@ const Grid: React.FC = () => {
         setCompleteArrayToCheck(state => [...new Set(state.concat(sorted))].sort((a, b) => +a - +b))
     }
 
+    const handleGameOver = () => {
+        setGameOver(true)
+        setGameLost(true)
+    }
 
 
     const makeGrid = () => {
@@ -183,11 +190,10 @@ const Grid: React.FC = () => {
                                 row={+rowIndex + 1} 
                                 clicked={(data: {row: Number, col: Number, index: Number}) => handleOnClicked(data)} 
                                 bombs={placedBombs}
-                                showBombs={() => setGameOver(true)}
+                                showBombs={handleGameOver}
                                 gameOver={gameOver}
                                 gameStarted={gameStarted}
                                 clickedOnZero={(index: Number) => handleClickedOnZero(index)}
-                                
                                 index={+rowIndex + 1 === 1 ? (15 / 15) * +colIndex + 1 : 15 * (+rowIndex + 1 - 1) + +colIndex + 1 }
                                 flagsLeft={flagsLeft}
                                 adjecentIndexes={adjectIndexes}
@@ -237,6 +243,7 @@ const Grid: React.FC = () => {
             flaggedBombsString = flaggedBombs.sort((a, b) => +a - +b).toString()
         }
         if(placedBombsString === flaggedBombsString) {
+            setGameWon(true)
             alert('You won!')
             setGameOver(true)
             window.clearInterval(timerIntervalId)
@@ -274,7 +281,9 @@ const Grid: React.FC = () => {
                         bb={activeRestartStyle.bb}
                         bg={activeRestartStyle.bg}
                         >
-                        <img src={Smiley} width="17" />
+                        {
+                            !gameWon && !gameLost ? <img src={Smiley} width="17" /> : !gameLost ? <img src={Cool} width="17" /> :  <img src={Dead} width="17" />
+                        }
                         </Restart>
                 <Counter>{time}</Counter>
                 </Inner>

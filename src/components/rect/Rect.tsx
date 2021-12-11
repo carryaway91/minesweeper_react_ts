@@ -112,10 +112,10 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, index, bombs,flagsLeft, sen
     }, [isBomb])
 
     useEffect(( ) => {
-        if(userClicked && isBomb && !mineFlagged) {
+        if(userClicked && isBomb && !mineFlagged && gameOver) {
             setColor('red')
         }
-    }, [userClicked])
+    }, [gameOver, userClicked])
 
     useEffect(() => {
         if(bombs && index > 0) {
@@ -174,6 +174,7 @@ const Rect: React.FC<IProps> = ({ clicked, col, row, index, bombs,flagsLeft, sen
     // left click
     const handleClick = (e: React.MouseEvent<HTMLElement>) => {
         e.stopPropagation()
+        e.preventDefault()
         if(e.button === 0) {
             
             setUserClicked(true)
